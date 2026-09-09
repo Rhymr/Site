@@ -6,8 +6,10 @@ step, no framework. Palette and fonts are lifted from the app itself
 (`rhymr-win-mac/src/css.rs` `PALETTE`, `src/rhyme/highlight.rs`) so the site and
 the app read as one product.
 
-Deploy: drop the folder at a web root. Two things to edit before go-live —
-`REPLACE: CHECKOUT_URL` and `VERSION:` — both flagged in `index.html`. See
+Alongside it: `server/` (Stripe Checkout backend) and `demo/` (the `/demo/` web
+preview — a PaperEditor submodule + its built `app/`). Before go-live: set
+`CHECKOUT_API` in `index.html` to the `server/` origin; keep `version.json`
+current (the page reads it at runtime into every `[data-rhymr-*]` slot). See
 `README.md`.
 
 ## House style

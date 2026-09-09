@@ -38,7 +38,7 @@ Use Stripe **test** keys and card `4242 4242 4242 4242` until launch.
 (search `CHECKOUT_API` in `index.html`) POSTs to
 `CHECKOUT_API + '/api/create-checkout-session'` and follows the returned `url`.
 Set `CHECKOUT_API` to this service's public origin. Until it's set, the buttons
-fall back to their `href` (currently a Gumroad placeholder).
+just scroll to `#pricing`.
 
 ## Deploy
 

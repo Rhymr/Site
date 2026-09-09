@@ -8,9 +8,10 @@
 <!--  Rhymr — product site.  Static, self-contained, deploy on any -->
 <!--  static host (drop this folder at your web root).             -->
 <!--                                                               -->
-<!--  TWO THINGS TO EDIT BEFORE GOING LIVE:                        -->
-<!--   1. CHECKOUT_URL  — search this file for "REPLACE:"          -->
-<!--   2. Version label  — search for "VERSION:"                   -->
+<!--  BEFORE GOING LIVE:                                           -->
+<!--   1. Checkout — set CHECKOUT_API (search this file) to the    -->
+<!--      server/ Stripe service origin.                           -->
+<!--   2. Version  — edit /version.json (not this file).           -->
 <!-- ============================================================= -->
 
 <title>Rhymr</title>
@@ -403,8 +404,8 @@
       <img src="assets/rhymr-icon.png" alt="">
       Rhymr
     </a>
-    <!-- VERSION: update this label on each cut -->
-    <span class="badge">2026.1 &middot; beta</span>
+    <!-- VERSION: driven by /version.json at runtime; text here is the fallback -->
+    <span class="badge"><span data-rhymr-version-short>v0.76.0</span> &middot; <span data-rhymr-channel>beta</span></span>
 
     <nav>
       <a class="navlink" href="#features">Features</a>
@@ -435,8 +436,9 @@
           window that feels like a professional editor.
         </p>
         <div class="hero__cta">
-          <!-- REPLACE: CHECKOUT_URL (Gumroad / Lemon Squeezy / Stripe / Polar). Same link used by every Buy button. -->
-          <a class="btn btn--lg" data-checkout href="https://rhymr.gumroad.com/l/rhymr">Get the macOS build &middot; $5+</a>
+          <!-- Checkout goes through server/ (Stripe). Set CHECKOUT_API in the script at the
+               bottom of this file; until then [data-checkout] just scrolls to #pricing. -->
+          <a class="btn btn--lg" data-checkout href="#pricing">Get the macOS build &middot; $5+</a>
           <a class="btn btn--ghost btn--lg" href="https://github.com/Rhymr/win-mac">Build from source &middot; free</a>
         </div>
         <p class="hero__fine">MIT-licensed &middot; no account &middot; works fully offline</p>
@@ -586,7 +588,7 @@
             <li>Windows build in progress &mdash; buyers get it when it lands</li>
           </ul>
           <!-- REPLACE: CHECKOUT_URL -->
-          <a class="btn btn--lg" data-checkout href="https://rhymr.gumroad.com/l/rhymr">Buy Rhymr for macOS</a>
+          <a class="btn btn--lg" data-checkout href="#pricing">Buy Rhymr for macOS</a>
         </div>
 
         <div class="buy__col buy__col--free">
@@ -626,7 +628,7 @@
         <div class="spec"><dt>Offline</dt><dd>100% &mdash; no account, no sign-in, no licence server, no telemetry</dd></div>
         <div class="spec"><dt>Pronunciation</dt><dd>CMUdict bundled &middot; Datamuse optional, with local fallback</dd></div>
         <div class="spec"><dt>Licence</dt><dd>MIT &mdash; source free to build and redistribute</dd></div>
-        <div class="spec"><dt>Version</dt><dd>2026.1 (calendar) &middot; beta</dd></div>
+        <div class="spec"><dt>Version</dt><dd><span data-rhymr-version>0.76.0+build.131.ga432101</span> &middot; <span data-rhymr-channel>beta</span></dd></div>
       </dl>
     </div>
   </section>
@@ -722,6 +724,25 @@
           });
       });
     });
+  })();
+</script>
+
+<script>
+  /* Version — single source of truth is /version.json. The text baked into
+     [data-rhymr-*] elements is only the fallback if this fetch fails. */
+  (function () {
+    fetch("version.json", { cache: "no-cache" })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+      .then(function (v) {
+        var set = function (sel, val) {
+          if (!val) return;
+          document.querySelectorAll(sel).forEach(function (el) { el.textContent = val; });
+        };
+        set("[data-rhymr-version]", v.version);
+        set("[data-rhymr-version-short]", v.versionShort || v.version);
+        set("[data-rhymr-channel]", v.channel);
+      })
+      .catch(function () { /* keep the fallback text */ });
   })();
 </script>
 
