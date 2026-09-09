@@ -1,6 +1,6 @@
 # Rhymr — product site
 
-Sells the macOS build of [Rhymr](https://github.com/Rhymr/win-mac) and points at
+Sells the macOS build of [Rhymr](https://github.com/Rhymr/WinMac) and points at
 the open source. `index.html` is a static page — no build step, no framework.
 Two sibling pieces have their own tooling:
 

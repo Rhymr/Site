@@ -1,7 +1,7 @@
 # CLAUDE.md — Rhymr site
 
 One static page (`index.html` + local `assets/`) that sells the macOS build of
-[Rhymr](https://github.com/Rhymr/win-mac) and points at the open source. No build
+[Rhymr](https://github.com/Rhymr/WinMac) and points at the open source. No build
 step, no framework. Palette and fonts are lifted from the app itself
 (`rhymr-win-mac/src/css.rs` `PALETTE`, `src/rhyme/highlight.rs`) so the site and
 the app read as one product.
