@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thanks — Rhymr</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/rhymr-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&display=swap">
+<style>
+  :root{
+    color-scheme:light;
+    --bg:#ffffff;--panel:#f0f0f0;--border:#c8c8c8;
+    --text:#2b2b2b;--text-bright:#101114;--text-muted:#5c636b;
+    --accent:#2f6db0;--on-accent:#fff;--radius:2px;
+    --spectrum:linear-gradient(90deg,#d57b7b,#d5927b,#d5a87b,#d5bf7b,#d5d57b,#bfd57b,#a8d57b,#92d57b,#7bd57b,#7bd592,#7bd5a8,#7bd5bf,#7bd5d5,#7bbfd5,#7ba8d5,#7b92d5,#7b7bd5,#927bd5,#a87bd5,#bf7bd5,#d57bd5,#d57bbf,#d57ba8,#d57b92);
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#2b2b2b;--panel:#313335;--border:#4c4c4c;
+    --text:#a9b7c6;--text-bright:#dfe4ea;--text-muted:#949ea8;--accent:#3574c4;
+  }}
+  *{box-sizing:border-box}
+  body{
+    margin:0;min-height:100vh;display:grid;place-items:center;
+    background:var(--bg);color:var(--text);
+    font-family:"Archivo","Segoe UI",system-ui,sans-serif;line-height:1.6;
+  }
+  .card{max-width:34rem;padding:2.5rem 1.5rem;text-align:center}
+  .spectrum{height:4px;background:var(--spectrum);border-radius:2px;margin-bottom:2rem}
+  h1{font-size:clamp(1.8rem,5vw,2.6rem);font-weight:800;letter-spacing:-.02em;margin:0 0 .75rem;color:var(--text-bright);text-wrap:balance}
+  p{margin:0 0 1rem}
+  .muted{color:var(--text-muted);font-size:.95rem}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;color:var(--text-muted);word-break:break-all}
+  a.btn{
+    display:inline-block;margin-top:1rem;padding:.7rem 1.15rem;
+    background:var(--accent);color:var(--on-accent);text-decoration:none;
+    font-weight:700;border-radius:var(--radius);
+  }
+  a.home{display:inline-block;margin-top:1.5rem;color:inherit;font-size:.9rem}
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="spectrum"></div>
+    <h1>Thanks — you funded the work.</h1>
+    <p>Your payment went through. A download link is on its way to the email you
+       gave Stripe. A bought build and a <span class="mono">cargo build</span>
+       are the same program — there's no licence key to enter.</p>
+    <p class="muted">Nothing in your inbox in a few minutes? Reply to the Stripe
+       receipt, or open an issue on GitHub and we'll sort it.</p>
+    <p id="ref" class="mono" hidden></p>
+    <a class="btn" href="https://github.com/Rhymr/win-mac#quick-start">Build from source meanwhile</a>
+    <br>
+    <a class="home" href="/">&larr; Back to rhymr</a>
+  </main>
+  <script>
+    try {
+      var s = new URLSearchParams(location.search).get("s");
+      if (s) { var el = document.getElementById("ref"); el.textContent = "ref " + s; el.hidden = false; }
+    } catch (e) {}
+  </script>
+</body>
+</html>

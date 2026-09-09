@@ -414,7 +414,7 @@
         </p>
         <div class="hero__cta">
           <!-- REPLACE: CHECKOUT_URL (Gumroad / Lemon Squeezy / Stripe / Polar). Same link used by every Buy button. -->
-          <a class="btn btn--lg" href="https://rhymr.gumroad.com/l/rhymr">Get the macOS build &middot; $5+</a>
+          <a class="btn btn--lg" data-checkout href="https://rhymr.gumroad.com/l/rhymr">Get the macOS build &middot; $5+</a>
           <a class="btn btn--ghost btn--lg" href="https://github.com/Rhymr/win-mac">Build from source &middot; free</a>
         </div>
         <p class="hero__fine">MIT-licensed &middot; no account &middot; works fully offline</p>
@@ -563,7 +563,7 @@
             <li>Windows build in progress &mdash; buyers get it when it lands</li>
           </ul>
           <!-- REPLACE: CHECKOUT_URL -->
-          <a class="btn btn--lg" href="https://rhymr.gumroad.com/l/rhymr">Buy Rhymr for macOS</a>
+          <a class="btn btn--lg" data-checkout href="https://rhymr.gumroad.com/l/rhymr">Buy Rhymr for macOS</a>
         </div>
 
         <div class="buy__col buy__col--free">
@@ -668,6 +668,37 @@
         if (stored() == null) apply(null);
       });
     }
+  })();
+</script>
+
+<script>
+  /* Stripe Checkout hook.
+     REPLACE: point CHECKOUT_API at the deployed server/ origin (see server/README.md).
+     While it's null, [data-checkout] links just follow their href (the placeholder store). */
+  (function () {
+    var CHECKOUT_API = null; // e.g. "https://checkout.rhymr.example"
+    if (!CHECKOUT_API) return;
+
+    document.querySelectorAll("a[data-checkout]").forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (a.dataset.busy) return;
+        a.dataset.busy = "1";
+        var label = a.textContent;
+        a.textContent = "Starting checkout…";
+        fetch(CHECKOUT_API + "/api/create-checkout-session", { method: "POST" })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (d && d.url) { window.location.href = d.url; }
+            else { throw new Error("no url"); }
+          })
+          .catch(function () {
+            a.textContent = label;
+            delete a.dataset.busy;
+            window.location.href = a.href; // fall back to the store link
+          });
+      });
+    });
   })();
 </script>
 
