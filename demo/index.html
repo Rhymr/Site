@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web preview — Rhymr</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/rhymr-icon.png">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bar-bg:#3c3f41; --bar-fg:#dfe4ea; --bar-dim:#a9b7c6; --bar-border:#2b2b2b;
+    --accent:#4a88c7;
+    --spectrum:linear-gradient(90deg,#d57b7b,#d5927b,#d5a87b,#d5bf7b,#d5d57b,#bfd57b,#a8d57b,#92d57b,#7bd57b,#7bd592,#7bd5a8,#7bd5bf,#7bd5d5,#7bbfd5,#7ba8d5,#7b92d5,#7b7bd5,#927bd5,#a87bd5,#bf7bd5,#d57bd5,#d57bbf,#d57ba8,#d57b92);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    display:flex;flex-direction:column;
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:var(--bar-bg);
+  }
+  .bar{
+    flex:0 0 auto;
+    display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;
+    padding:.5rem .9rem;
+    background:var(--bar-bg);color:var(--bar-fg);
+    border-bottom:1px solid var(--bar-border);
+    font-size:.82rem;line-height:1.4;
+  }
+  .bar strong{font-weight:700}
+  .bar .dim{color:var(--bar-dim)}
+  .bar a{color:var(--bar-fg);text-decoration:none;font-weight:700;white-space:nowrap}
+  .bar a.cta{
+    margin-left:auto;
+    background:var(--accent);color:#fff;
+    padding:.35rem .7rem;border-radius:2px;
+  }
+  .bar a.plain{text-decoration:underline;text-underline-offset:3px;font-weight:400}
+  .spectrum{flex:0 0 auto;height:3px;background:var(--spectrum)}
+  iframe{flex:1 1 auto;width:100%;border:0;background:#fff}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <span><strong>Web preview.</strong> <span class="dim">A cut-down, earlier build of the editor &mdash; rhyme colouring, syllable gutter and rhyme search only. Not the full app: no projects, version control, themes or offline pronunciation.</span></span>
+    <a class="plain" href="/#features">what the macOS app adds</a>
+    <a class="cta" href="/#pricing">Get the macOS app &middot; $5+</a>
+  </div>
+  <div class="spectrum"></div>
+  <iframe src="app/index.html" title="Rhymr web preview" allow="clipboard-write"></iframe>
+</body>
+</html>

@@ -238,6 +238,9 @@
     font-family:"JetBrains Mono",ui-monospace,monospace;
     font-size:.75rem;color:var(--text-muted);letter-spacing:.02em;
   }
+  .hero__try{margin-top:.6rem;font-size:.9rem}
+  .hero__try a{color:var(--accent);text-decoration:none;font-weight:600}
+  .hero__try a:hover{text-decoration:underline;text-underline-offset:3px}
 
   /* ---- product screenshot ----------------------------------- */
   .showcase{padding-block:clamp(1rem,2vw,1.75rem) clamp(2.5rem,6vw,4.25rem)}
@@ -405,6 +408,7 @@
 
     <nav>
       <a class="navlink" href="#features">Features</a>
+      <a class="navlink" href="/demo/">Try online</a>
       <a class="navlink" href="https://github.com/Rhymr/win-mac">Source</a>
       <button class="icon-btn" id="theme" type="button" title="Switch colour theme" aria-label="Switch colour theme" aria-pressed="false">
         <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -436,6 +440,7 @@
           <a class="btn btn--ghost btn--lg" href="https://github.com/Rhymr/win-mac">Build from source &middot; free</a>
         </div>
         <p class="hero__fine">MIT-licensed &middot; no account &middot; works fully offline</p>
+        <p class="hero__try"><a href="/demo/">Try a cut-down version in your browser &rarr;</a></p>
       </div>
     </div>
   </section>
