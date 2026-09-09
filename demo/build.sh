@@ -21,7 +21,7 @@ if [ ! -f "$sub/package.json" ]; then
 fi
 
 ( cd "$sub" && npm ci --no-audit --no-fund )
-( cd "$sub" && npx vite build --base=/demo/app/ --outDir="$tmp" --emptyOutDir )
+( cd "$sub" && npx vite build --outDir="$tmp" --emptyOutDir )
 
 rm -rf "$out"
 mkdir -p "$out"
