@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- ============================================================= -->
+<!--  Rhymr — product site.  Static, self-contained, deploy on any -->
+<!--  static host (drop this folder at your web root).             -->
+<!--                                                               -->
+<!--  TWO THINGS TO EDIT BEFORE GOING LIVE:                        -->
+<!--   1. CHECKOUT_URL  — search this file for "REPLACE:"          -->
+<!--   2. Version label  — search for "VERSION:"                   -->
+<!-- ============================================================= -->
+
+<title>Rhymr</title>
+<meta name="description" content="Rhymr is a distraction-free lyric editor that colours your rhymes and counts your syllables as you type. macOS build $5, pay what you want. Source is MIT and free to build.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rhymr — the lyric editor that colours your rhymes">
+<meta property="og:description" content="A rhyme-scheme IDE for poets, lyricists and MCs. Syllable gutter, rhyme finder, version history — offline, no account. macOS build $5+. Source MIT.">
+<meta property="og:image" content="assets/showcase.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="assets/rhymr-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap">
+
+<style>
+  /* ---- Rhymr's own editor face, self-hosted -------------------- */
+  @font-face{
+    font-family:"JetBrains Mono";
+    src:url("assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+    font-weight:400; font-display:swap;
+  }
+  @font-face{
+    font-family:"JetBrains Mono";
+    src:url("assets/fonts/JetBrainsMono-Medium.woff2") format("woff2");
+    font-weight:500; font-display:swap;
+  }
+  @font-face{
+    font-family:"JetBrains Mono";
+    src:url("assets/fonts/JetBrainsMono-Bold.woff2") format("woff2");
+    font-weight:700; font-display:swap;
+  }
+
+  /* ============================================================= */
+  /*  Palette — taken verbatim from Rhymr's src/css.rs PALETTE     */
+  /*  and src/rhyme/highlight.rs.  Bare :root = IntelliJ Light.    */
+  /* ============================================================= */
+  :root{
+    color-scheme:light;
+
+    --bg:#ffffff;
+    --panel:#ececec;
+    --panel-2:#f0f0f0;        /* gutter background            */
+    --border:#c8c8c8;
+    --border-strong:#a6a6a6;
+
+    --text:#2b2b2b;
+    --text-bright:#101114;
+    --text-muted:#5c636b;
+    --syllable:#3a8a2e;
+
+    --accent:#2f6db0;         /* CTA — IntelliJ selection blue */
+    --accent-hover:#255c98;
+    --selection:#2675bf;
+    --on-accent:#ffffff;
+
+    /* the full 24-hue rhyme spectrum (RHYME_PALETTE_DARK), for the one rule */
+    --spectrum:linear-gradient(90deg,
+      #d57b7b,#d5927b,#d5a87b,#d5bf7b,#d5d57b,#bfd57b,#a8d57b,#92d57b,
+      #7bd57b,#7bd592,#7bd5a8,#7bd5bf,#7bd5d5,#7bbfd5,#7ba8d5,#7b92d5,
+      #7b7bd5,#927bd5,#a87bd5,#bf7bd5,#d57bd5,#d57bbf,#d57ba8,#d57b92);
+
+    --shadow:0 1px 2px rgba(0,0,0,.06), 0 12px 32px rgba(0,0,0,.10);
+    --radius:2px;             /* Rhymr is deliberately boxy: --radius-* = 0 */
+  }
+
+  /* Darcula — OS dark, unless an explicit light choice overrides  */
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --bg:#2b2b2b;
+      --panel:#3c3f41;
+      --panel-2:#313335;
+      --border:#4c4c4c;
+      --border-strong:#5e6060;
+
+      --text:#a9b7c6;
+      --text-bright:#dfe4ea;
+      --text-muted:#949ea8;
+      --syllable:#6cbf5a;
+
+      --accent:#3574c4;
+      --accent-hover:#4a88c7;
+      --selection:#2f65ca;
+      --on-accent:#ffffff;
+
+      --shadow:0 1px 2px rgba(0,0,0,.30), 0 16px 40px rgba(0,0,0,.45);
+    }
+  }
+
+  /* Explicit toggle wins in both directions */
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#2b2b2b; --panel:#3c3f41; --panel-2:#313335;
+    --border:#4c4c4c; --border-strong:#5e6060;
+    --text:#a9b7c6; --text-bright:#dfe4ea; --text-muted:#949ea8;
+    --syllable:#6cbf5a;
+    --accent:#3574c4; --accent-hover:#4a88c7; --selection:#2f65ca; --on-accent:#ffffff;
+    --shadow:0 1px 2px rgba(0,0,0,.30), 0 16px 40px rgba(0,0,0,.45);
+  }
+
+  /* ---- reset / base ------------------------------------------- */
+  *,*::before,*::after{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;overflow-x:hidden}
+  body{
+    margin:0;
+    overflow-x:hidden;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Archivo","Segoe UI",system-ui,-apple-system,sans-serif;
+    font-size:1rem;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  img{max-width:100%;display:block}
+  a{color:inherit}
+  h1,h2,h3{margin:0;line-height:1.1;text-wrap:balance;color:var(--text-bright);letter-spacing:-.02em}
+  p{margin:0}
+
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--radius)}
+
+  .wrap{max-width:1120px;margin-inline:auto;padding-inline:clamp(1.25rem,4vw,2rem)}
+
+  .eyebrow{
+    font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:.75rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--text-muted);
+  }
+
+  /* ---- top bar ---------------------------------------------------- */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    background:var(--bg);
+    border-bottom:1px solid var(--border);
+  }
+  @supports (backdrop-filter:blur(1px)){
+    .topbar{background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(10px)}
+  }
+  .topbar__in{display:flex;align-items:center;gap:.6rem;height:52px}
+  .brand{display:flex;align-items:center;gap:.55rem;flex-shrink:0;font-weight:800;font-size:1.05rem;color:var(--text-bright);text-decoration:none;letter-spacing:-.02em}
+  .brand img{width:20px;height:20px}
+  .badge{
+    display:none;
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:.7rem;font-weight:500;letter-spacing:.04em;
+    color:var(--text-muted);
+    border:1px solid var(--border);
+    padding:.1rem .4rem;border-radius:var(--radius);
+    white-space:nowrap;
+  }
+  @media (min-width:560px){.badge{display:inline-block}}
+  .topbar nav{margin-left:auto;display:flex;align-items:center;gap:.3rem;min-width:0}
+  .navlink{
+    display:none;
+    font-size:.9rem;text-decoration:none;color:var(--text);
+    padding:.4rem .6rem;border-radius:var(--radius);
+  }
+  .navlink:hover{color:var(--text-bright);background:var(--panel)}
+  @media (min-width:640px){.navlink{display:inline-block}}
+
+  .icon-btn{
+    display:inline-grid;place-items:center;
+    width:34px;height:34px;
+    background:transparent;border:1px solid var(--border);
+    border-radius:var(--radius);color:var(--text);cursor:pointer;
+  }
+  .icon-btn:hover{background:var(--panel);color:var(--text-bright)}
+  .icon-btn svg{width:16px;height:16px}
+
+  .btn{
+    --_bg:var(--accent);
+    display:inline-flex;align-items:center;gap:.5rem;
+    font-family:inherit;font-size:.9rem;font-weight:700;
+    text-decoration:none;white-space:nowrap;
+    padding:.5rem .9rem;
+    background:var(--_bg);color:var(--on-accent);
+    border:1px solid transparent;border-radius:var(--radius);
+    cursor:pointer;transition:background .12s ease;
+  }
+  .btn:hover{--_bg:var(--accent-hover)}
+  .btn--ghost{
+    --_bg:transparent;color:var(--text-bright);
+    border-color:var(--border-strong);
+  }
+  .btn--ghost:hover{--_bg:var(--panel)}
+  .btn--lg{font-size:1rem;padding:.7rem 1.15rem}
+
+  .btn:active{transform:translateY(1px)}
+
+  /* ---- hero (copy only; the real screenshot follows) ---------- */
+  .hero{
+    padding-block:clamp(3rem,8vw,6rem) clamp(1.75rem,4vw,2.75rem);
+    text-align:center;
+  }
+  .hero__copy{max-width:52ch;margin-inline:auto}
+  .hero .eyebrow{display:block}
+  .hero h1{
+    font-weight:800;
+    font-size:clamp(2.35rem,6vw,3.6rem);
+    margin:.9rem auto 1.05rem;
+    max-width:16ch;
+  }
+  .hero h1 em{font-style:normal;color:var(--accent)}
+  .hero__sub{
+    font-size:1.15rem;color:var(--text);
+    max-width:52ch;margin-inline:auto;
+  }
+  .hero__cta{display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem;margin-top:1.7rem}
+  .hero__fine{
+    margin-top:1rem;
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:.75rem;color:var(--text-muted);letter-spacing:.02em;
+  }
+
+  /* ---- product screenshot ----------------------------------- */
+  .showcase{padding-bottom:clamp(2.5rem,6vw,4.25rem)}
+  .dots{display:flex;gap:6px;flex-shrink:0}
+  .dots i{width:10px;height:10px;border-radius:50%;background:var(--border-strong)}
+  .dots i:nth-child(1){background:#e0685b}
+  .dots i:nth-child(2){background:#e2b23c}
+  .dots i:nth-child(3){background:#4fae4f}
+
+  /* ---- the 24-hue spectrum rule ------------------------------- */
+  .spectrum{height:4px;background:var(--spectrum)}
+
+  /* ---- generic section --------------------------------------- */
+  section{padding-block:clamp(3.25rem,6.5vw,5rem)}
+  .section-head{max-width:52ch;margin-bottom:2.5rem}
+  .section-head h2{font-size:clamp(1.7rem,3.4vw,2.25rem);font-weight:800;margin:.6rem 0 .5rem}
+  .section-head p{color:var(--text)}
+
+  /* ---- features: a tool-window list, not cards --------------- */
+  .features{display:grid;gap:0;border-top:1px solid var(--border)}
+  @media (min-width:760px){.features{grid-template-columns:1fr 1fr}}
+  .feat{
+    display:grid;
+    grid-template-columns:24px 1fr;
+    gap:.4rem 1.1rem;
+    align-items:start;
+    padding:1.5rem 1.1rem;
+    border-bottom:1px solid var(--border);
+    border-left:2px solid transparent;
+    transition:border-left-color .15s ease, transform .15s ease, background .15s ease;
+  }
+  @media (min-width:760px){
+    .feat:nth-child(odd){border-right:1px solid var(--border)}
+  }
+  .feat:hover{border-left-color:var(--selection);background:var(--panel-2);transform:translateX(2px)}
+  .feat__icon{width:24px;height:24px;margin-top:.05rem}
+  .feat__icon svg,.feat__icon img{width:24px;height:24px;display:block}
+  .feat__body h3{font-size:1rem;font-weight:700;margin-bottom:.25rem}
+  .feat__body p{font-size:.92rem;color:var(--text)}
+  .feat__body code{
+    font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.85em;
+    background:var(--panel);padding:.05em .35em;border-radius:var(--radius);
+  }
+
+  /* ---- pricing: two columns, one lifted --------------------- */
+  .buy{display:grid;gap:1.25rem}
+  @media (min-width:760px){.buy{grid-template-columns:1.05fr .95fr;align-items:stretch}}
+  .buy__col{
+    display:flex;flex-direction:column;
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:1.75rem;
+    background:var(--bg);
+  }
+  .buy__col--lift{
+    border-color:var(--accent);
+    box-shadow:var(--shadow);
+    background:var(--panel-2);
+  }
+  .buy__price{
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:2.25rem;font-weight:700;color:var(--text-bright);
+    letter-spacing:-.02em;line-height:1;
+  }
+  .buy__price small{font-size:.9rem;font-weight:500;color:var(--text-muted);letter-spacing:.02em}
+  .buy__col h3{font-size:1.15rem;font-weight:800;margin:.9rem 0 .4rem}
+  .buy__col p{font-size:.95rem;color:var(--text)}
+  .buy__col ul{margin:1rem 0 1.5rem;padding:0;list-style:none;display:grid;gap:.5rem}
+  .buy__col li{
+    font-size:.9rem;padding-left:1.4rem;position:relative;
+  }
+  .buy__col li::before{
+    content:"";position:absolute;left:0;top:.5em;
+    width:8px;height:8px;background:var(--selection);
+  }
+  .buy__col--free li::before{background:var(--border-strong)}
+  .buy__col code{
+    font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.85em;
+    background:var(--panel);padding:.05em .35em;border-radius:var(--radius);
+  }
+  .buy__col .btn{margin-top:auto;align-self:flex-start}
+  .buy__note{
+    margin-top:1.5rem;font-size:.82rem;color:var(--text-muted);
+    max-width:60ch;line-height:1.6;
+  }
+
+  /* ---- screenshot ------------------------------------------- */
+  .shot-frame{
+    border:1px solid var(--border-strong);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    background:var(--panel);
+  }
+  .shot-frame__bar{
+    display:flex;align-items:center;gap:.6rem;
+    padding:.5rem .8rem;border-bottom:1px solid var(--border);
+  }
+  .shot-frame__bar span{
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:.72rem;color:var(--text-muted);
+  }
+  .shot-cap{
+    margin-top:1rem;font-size:.85rem;color:var(--text-muted);
+    max-width:70ch;
+  }
+
+  /* ---- specs strip ----------------------------------------- */
+  .specs{
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    display:grid;
+  }
+  .spec{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:.15rem .5rem;
+    padding:1rem 0;
+    border-bottom:1px solid var(--border);
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:.85rem;
+  }
+  .spec:last-child{border-bottom:0}
+  @media (min-width:640px){.spec{grid-template-columns:200px 1fr;align-items:baseline}}
+  .spec dt{color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem}
+  .spec dd{margin:0;color:var(--text)}
+
+  /* ---- footer --------------------------------------------- */
+  footer{padding-block:clamp(3rem,6vw,4.5rem);border-top:1px solid var(--border)}
+  .foot__links{display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;margin-bottom:2rem}
+  .foot__links a{
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:.82rem;text-decoration:none;color:var(--text);
+  }
+  .foot__links a:hover{color:var(--text-bright);text-decoration:underline;text-underline-offset:3px}
+  .foot__fine{font-size:.78rem;color:var(--text-muted);max-width:78ch;line-height:1.7}
+  .foot__fine + .foot__fine{margin-top:.9rem}
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+      animation-duration:.001ms!important;animation-iteration-count:1!important;
+      transition-duration:.001ms!important;scroll-behavior:auto!important;
+    }
+  }
+  html{scroll-behavior:smooth}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar__in">
+    <a class="brand" href="#top">
+      <img src="assets/rhymr-icon.png" alt="">
+      Rhymr
+    </a>
+    <!-- VERSION: update this label on each cut -->
+    <span class="badge">2026.1 &middot; beta</span>
+
+    <nav>
+      <a class="navlink" href="#features">Features</a>
+      <a class="navlink" href="https://github.com/Rhymr/win-mac">Source</a>
+      <button class="icon-btn" id="theme" type="button" title="Switch colour theme" aria-label="Switch colour theme" aria-pressed="false">
+        <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4">
+          <circle cx="8" cy="8" r="4.2"></circle>
+          <path d="M8 3.8V1M8 15v-2.8M12.2 8H15M1 8h2.8M11 5l1.7-1.7M3.3 12.7 5 11M11 11l1.7 1.7M3.3 3.3 5 5" stroke-linecap="round"></path>
+        </svg>
+      </button>
+      <a class="btn" href="#pricing">Get Rhymr &middot; $5</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero__copy">
+        <p class="eyebrow">A rhyme-scheme IDE for lyricists</p>
+        <h1>The lyric editor that <em>colours</em> your rhymes.</h1>
+        <p class="hero__sub">
+          A fast, distraction-free workspace for poets, lyricists and MCs. Syllable
+          counts, rhyme colouring, a rhyme finder and version history &mdash; in one
+          window that feels like a professional editor.
+        </p>
+        <div class="hero__cta">
+          <!-- REPLACE: CHECKOUT_URL (Gumroad / Lemon Squeezy / Stripe / Polar). Same link used by every Buy button. -->
+          <a class="btn btn--lg" href="https://rhymr.gumroad.com/l/rhymr">Get the macOS build &middot; $5+</a>
+          <a class="btn btn--ghost btn--lg" href="https://github.com/Rhymr/win-mac">Build from source &middot; free</a>
+        </div>
+        <p class="hero__fine">MIT-licensed &middot; no account &middot; works fully offline</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SCREENSHOT ================= -->
+  <section class="showcase">
+    <div class="wrap">
+      <figure class="shot-frame">
+        <figcaption class="shot-frame__bar">
+          <span class="dots"><i></i><i></i><i></i></span>
+          <span>Rhymr &mdash; RhymrTestWorkspace</span>
+        </figcaption>
+        <img src="assets/showcase.png" width="1286" height="725" loading="lazy" decoding="async"
+             alt="The Rhymr window: a project tree on the left with an Apple Notes section mounted read-only, and an open file whose rhyming words are grouped by colour with a live syllable count in the gutter beside each line.">
+      </figure>
+      <p class="shot-cap">
+        Rhyme groups coloured by ear, syllable counts in the gutter, changed-line
+        marks against git HEAD, and Apple&nbsp;Notes mounted read-only as an
+        external library &mdash; all in one window.
+      </p>
+    </div>
+  </section>
+
+  <div class="spectrum" role="presentation"></div>
+
+  <!-- ================= FEATURES ================= -->
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">What's in the window</p>
+        <h2>Writer's tooling where the developer tooling would be.</h2>
+        <p>
+          The polish and keyboard-driven layout of a JetBrains IDE &mdash; toolbar,
+          tool windows, project tree, built-in VCS &mdash; with rhyme and metre in
+          place of the debugger.
+        </p>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="features">
+        <div class="feat">
+          <span class="feat__icon"><img src="assets/icons/highlighting-neticons32.svg" alt="" width="24" height="24"></span>
+          <div class="feat__body">
+            <h3>Rhyme highlighting</h3>
+            <p>Words that rhyme are colour-grouped as you type &mdash; 24 distinct hues, laid out like a rhyme-scheme breakdown, including partial and multi-syllable rhymes. Scoring is syllable-level local alignment (Hirjee &amp; Brown).</p>
+          </div>
+        </div>
+
+        <div class="feat">
+          <span class="feat__icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M3 6h9M3 12h9M3 18h9"></path>
+              <path d="M17 4.5v15" stroke-width="1.3" opacity=".5"></path>
+              <rect x="19" y="4.5" width="3" height="3" fill="currentColor" stroke="none"></rect>
+              <rect x="19" y="10.5" width="3" height="3" fill="currentColor" stroke="none"></rect>
+              <rect x="19" y="16.5" width="3" height="3" fill="currentColor" stroke="none"></rect>
+            </svg>
+          </span>
+          <div class="feat__body">
+            <h3>Syllable gutter</h3>
+            <p>A live syllable count in the margin next to every line, from bundled CMUdict phonemes with a phoneme&#8594;letter alignment. Guarded by a ~19,000-word regression suite.</p>
+          </div>
+        </div>
+
+        <div class="feat">
+          <span class="feat__icon"><img src="assets/icons/search-color.svg" alt="" width="24" height="24"></span>
+          <div class="feat__body">
+            <h3>Rhyme finder</h3>
+            <p>Look up rhymes, near-rhymes and same-sounding words for any word, grouped by syllable count. Datamuse online, CMUdict and local scoring when you're offline &mdash; layered, never a single lookup.</p>
+          </div>
+        </div>
+
+        <div class="feat">
+          <span class="feat__icon"><img src="assets/icons/pin.svg" alt="" width="24" height="24"></span>
+          <div class="feat__body">
+            <h3>Stanza lock</h3>
+            <p>The line that starts the section you're in stays pinned to the top of the editor while you scroll a long piece, so you never lose the hook.</p>
+          </div>
+        </div>
+
+        <div class="feat">
+          <span class="feat__icon"><img src="assets/icons/file-structure-tool-window.svg" alt="" width="24" height="24"></span>
+          <div class="feat__body">
+            <h3>Projects &amp; files</h3>
+            <p>Open a folder and browse, create, rename, move and delete files in a side tree. On macOS, your Apple&nbsp;Notes mount read-only as an external library for reference and search.</p>
+          </div>
+        </div>
+
+        <div class="feat">
+          <span class="feat__icon"><img src="assets/icons/history.svg" alt="" width="24" height="24"></span>
+          <div class="feat__body">
+            <h3>Version history, built in</h3>
+            <p>Lines you've changed since your last commit are marked in the gutter. Commit, push, pull and fetch without leaving the app; the current branch shows in the status bar.</p>
+          </div>
+        </div>
+
+        <div class="feat">
+          <span class="feat__icon"><img src="assets/icons/metric-display.svg" alt="" width="24" height="24"></span>
+          <div class="feat__body">
+            <h3>Writing stats</h3>
+            <p>Word count and cursor position always in view in the status bar &mdash; no counting, no guessing where you are in a sixteen.</p>
+          </div>
+        </div>
+
+        <div class="feat">
+          <span class="feat__icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"></circle>
+              <path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <div class="feat__body">
+            <h3>Light &amp; dark themes</h3>
+            <p>Classic Darcula and a classic IntelliJ&nbsp;Light, with colour or plain icons. Change the font, theme or an option and it lands on your open documents right away.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PRICING ================= -->
+  <section id="pricing">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">$5, or build it yourself</p>
+        <h2>A bought build and a <code>cargo build</code> are the same program.</h2>
+        <p>
+          The source is MIT and free to compile. Selling the binary is how the
+          work gets funded &mdash; not how it gets locked down.
+        </p>
+      </div>
+
+      <div class="buy">
+        <div class="buy__col buy__col--lift">
+          <p class="buy__price">$5+ <small>&nbsp;pay what you want</small></p>
+          <h3>Buy the macOS build</h3>
+          <p>A notarised, ready-to-run app. $5 is the floor &mdash; pay more to back the work if you want to.</p>
+          <ul>
+            <li>Apple silicon &amp; Intel, universal</li>
+            <li>Free updates through 2026.x</li>
+            <li>No licence key, no sign-in, no activation</li>
+            <li>Windows build in progress &mdash; buyers get it when it lands</li>
+          </ul>
+          <!-- REPLACE: CHECKOUT_URL -->
+          <a class="btn btn--lg" href="https://rhymr.gumroad.com/l/rhymr">Buy Rhymr for macOS</a>
+        </div>
+
+        <div class="buy__col buy__col--free">
+          <p class="buy__price">$0 <small>&nbsp;from source</small></p>
+          <h3>Or <code>git clone</code> it</h3>
+          <p>Everything the paid build does, compiled on your machine. Same code, same features.</p>
+          <ul>
+            <li><code>git clone https://github.com/Rhymr/win-mac.git</code></li>
+            <li><code>cargo run --release</code></li>
+            <li>Rust + GTK4 &mdash; see <code>Cargo.toml</code> for prerequisites</li>
+          </ul>
+          <a class="btn btn--ghost btn--lg" href="https://github.com/Rhymr/win-mac#quick-start">Read the build guide</a>
+        </div>
+      </div>
+
+      <p class="buy__note">
+        Rhymr is piracy-tolerant by design. No DRM, no serial keys, no trial timer,
+        no nag screens, no check for how a copy was obtained, no telemetry, no
+        phone-home. The core &mdash; editing, the syllable gutter, rhyme
+        highlighting, pronunciation, version control &mdash; works with zero
+        network access, forever. Reward the people who pay by making the tool
+        excellent, never by punishing the people who don't.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= SPECS ================= -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">The short version</p>
+        <h2>Specs.</h2>
+      </div>
+      <dl class="specs">
+        <div class="spec"><dt>Built with</dt><dd>Rust &middot; GTK4 (gtk4-rs) + libadwaita &middot; SCSS compiled at launch</dd></div>
+        <div class="spec"><dt>Platforms</dt><dd>macOS &mdash; Apple silicon &amp; Intel, fully supported &middot; Windows &mdash; in progress</dd></div>
+        <div class="spec"><dt>Offline</dt><dd>100% &mdash; no account, no sign-in, no licence server, no telemetry</dd></div>
+        <div class="spec"><dt>Pronunciation</dt><dd>CMUdict bundled &middot; Datamuse optional, with local fallback</dd></div>
+        <div class="spec"><dt>Licence</dt><dd>MIT &mdash; source free to build and redistribute</dd></div>
+        <div class="spec"><dt>Version</dt><dd>2026.1 (calendar) &middot; beta</dd></div>
+      </dl>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <nav class="foot__links">
+      <a href="https://github.com/Rhymr/win-mac">Source &rarr;</a>
+      <a href="https://github.com/Rhymr/win-mac#quick-start">Build from source</a>
+      <a href="https://github.com/Rhymr/win-mac/blob/main/LICENCE.md">Licence</a>
+      <a href="https://github.com/Rhymr/win-mac/issues">Report an issue</a>
+      <a href="https://github.com/Rhymr/NetIcons">NetIcons mirror</a>
+    </nav>
+    <p class="foot__fine">
+      JetBrains, JetBrains&nbsp;Mono, IntelliJ and associated product names and
+      logos are trademarks of JetBrains&nbsp;s.r.o. Rhymr's use of the
+      JetBrains&nbsp;Mono font and the NetIcons set, and its JetBrains-inspired
+      visual design, do not imply any affiliation with, sponsorship by, or
+      endorsement from JetBrains. NetIcons are &copy; JetBrains&nbsp;s.r.o.,
+      licensed under Apache&nbsp;2.0; JetBrains&nbsp;Mono under the SIL Open Font
+      License&nbsp;1.1.
+    </p>
+    <p class="foot__fine">&copy; 2025&ndash;2026 The Rhymr Authors. Rhymr is MIT-licensed.</p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById("theme");
+    var KEY = "rhymr-theme";
+
+    function stored() {
+      try { return localStorage.getItem(KEY); } catch (e) { return null; }
+    }
+    function systemDark() {
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    function apply(mode) {
+      if (mode === "dark" || mode === "light") {
+        root.setAttribute("data-theme", mode);
+      } else {
+        root.removeAttribute("data-theme");
+      }
+      var isDark = mode === "dark" || (mode == null && systemDark());
+      btn.setAttribute("aria-pressed", String(isDark));
+    }
+
+    apply(stored());
+
+    btn.addEventListener("click", function () {
+      var current = root.getAttribute("data-theme") || (systemDark() ? "dark" : "light");
+      var next = current === "dark" ? "light" : "dark";
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+      apply(next);
+    });
+
+    if (window.matchMedia) {
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
+        if (stored() == null) apply(null);
+      });
+    }
+  })();
+</script>
+
+</body>
+</html>
