@@ -1,0 +1,4 @@
+[submodule "demo/paper-editor"]
+	path = demo/paper-editor
+	url = https://github.com/Rhymr/PaperEditor.git
+	branch = main
