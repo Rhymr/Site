@@ -13,11 +13,18 @@ Two sibling pieces have their own tooling:
 
 ## Deploy
 
-Drop the folder at your web root — Netlify, Cloudflare Pages, GitHub Pages, S3,
-or `python3 -m http.server` for a local look. **Zero external requests:** Archivo
-and JetBrains Mono are self-hosted, NetIcons and the screenshot are in `assets/`.
-The `/demo/` preview must be served over HTTP (ES-module bundle won't run from
-`file://`).
+**GitHub Pages** is wired up: `.github/workflows/pages.yml` publishes on every
+push to `main` — <https://rhymr.github.io/Site/>. The workflow assembles a clean
+`_site` (drops `server/`, the `demo/paper-editor` submodule source, `CLAUDE.md`)
+and adds `.nojekyll`; `demo/app/` ships as-is. Every internal link is relative,
+so it works both under the `/Site/` project path and at the root of a custom
+domain (add a `CNAME` file and set it in repo settings).
+
+Anywhere else — Netlify, Cloudflare Pages, S3, or `python3 -m http.server` for a
+local look — just drop `index.html`, `thanks.html`, `version.json`, `assets/` and
+`demo/` at the web root. **Zero external requests:** Archivo and JetBrains Mono
+are self-hosted, NetIcons and the screenshot are in `assets/`. The `/demo/`
+preview must be served over HTTP (its ES-module bundle won't run from `file://`).
 
 ## Before going live
 
